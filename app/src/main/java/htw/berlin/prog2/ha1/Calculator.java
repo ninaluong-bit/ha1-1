@@ -14,6 +14,9 @@ public class Calculator {
 
     private String latestOperation = "";
 
+    private boolean screenCleared = false;
+
+
     /**
      * @return den aktuellen Bildschirminhalt als String
      */
@@ -33,7 +36,11 @@ public class Calculator {
 
         if(screen.equals("0") || latestValue == Double.parseDouble(screen)) screen = "";
 
+        // Auf 10 Stellen begrenzen 
+        
+
         screen = screen + digit;
+        screenCleared = false; // Zustand zurücksetzen 
     }
 
     /**
@@ -45,9 +52,15 @@ public class Calculator {
      * im Ursprungszustand ist.
      */
     public void pressClearKey() {
-        screen = "0";
-        latestOperation = "";
-        latestValue = 0.0;
+        if (!screenCleared) {
+            screen = "0";
+            screenCleared = true; //nochmal drücken setzt alles zurück
+        } else {
+            screen = "0";
+            latestOperation = "";
+            latestValue = 0.0;
+            screenCleared = false;
+        }
     }
 
     /**
@@ -74,12 +87,18 @@ public class Calculator {
     public void pressUnaryOperationKey(String operation) {
         latestValue = Double.parseDouble(screen);
         latestOperation = operation;
+
         var result = switch(operation) {
             case "√" -> Math.sqrt(Double.parseDouble(screen));
             case "%" -> Double.parseDouble(screen) / 100;
-            case "1/x" -> 1 / Double.parseDouble(screen);
+            case "1/x" -> {
+                double value = Double.parseDouble(screen);
+                if (value == 0) yield Double.NaN;
+                else yield 1 / latestValue;
+            }
             default -> throw new IllegalArgumentException();
         };
+
         screen = Double.toString(result);
         if(screen.equals("NaN")) screen = "Error";
         if(screen.contains(".") && screen.length() > 11) screen = screen.substring(0, 10);
