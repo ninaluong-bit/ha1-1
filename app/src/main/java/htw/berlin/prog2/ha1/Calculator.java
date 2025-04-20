@@ -14,8 +14,7 @@ public class Calculator {
 
     private String latestOperation = "";
 
-    private boolean screenCleared = false;
-
+    private double lastValue = Double.parseDouble(screen);
 
     /**
      * @return den aktuellen Bildschirminhalt als String
@@ -34,13 +33,11 @@ public class Calculator {
     public void pressDigitKey(int digit) {
         if(digit > 9 || digit < 0) throw new IllegalArgumentException();
 
-        if(screen.equals("0") || latestValue == Double.parseDouble(screen)) screen = "";
-
-        // Auf 10 Stellen begrenzen 
+        if(screen.equals("0")) {}
         
 
         screen = screen + digit;
-        screenCleared = false; // Zustand zurücksetzen 
+
     }
 
     /**
@@ -52,16 +49,10 @@ public class Calculator {
      * im Ursprungszustand ist.
      */
     public void pressClearKey() {
-        if (!screenCleared) {
-            screen = "0";
-            screenCleared = true; //nochmal drücken setzt alles zurück
-        } else {
             screen = "0";
             latestOperation = "";
             latestValue = 0.0;
-            screenCleared = false;
         }
-    }
 
     /**
      * Empfängt den Wert einer gedrückten binären Operationstaste, also eine der vier Operationen
@@ -73,9 +64,25 @@ public class Calculator {
      * @param operation "+" für Addition, "-" für Substraktion, "x" für Multiplikation, "/" für Division
      */
     public void pressBinaryOperationKey(String operation)  {
-        latestValue = Double.parseDouble(screen);
+        if(lastValue != 0.0){
+            switch(operation) {
+            case "+" -> latestValue += lastValue;
+            case "-" -> latestValue -= lastValue;
+            case "x" -> latestValue *= lastValue;
+            case "/" -> latestValue /= lastValue;
+            default -> throw new IllegalArgumentException();
+        }
+       
+         }else {
+            latestValue = lastValue;
+         }
+
+        screen = Double.toString(latestValue);
         latestOperation = operation;
+
     }
+
+
 
     /**
      * Empfängt den Wert einer gedrückten unären Operationstaste, also eine der drei Operationen
@@ -85,23 +92,23 @@ public class Calculator {
      * @param operation "√" für Quadratwurzel, "%" für Prozent, "1/x" für Inversion
      */
     public void pressUnaryOperationKey(String operation) {
-        latestValue = Double.parseDouble(screen);
-        latestOperation = operation;
+        latestValue = Double.parseDouble(screen);       //Wert setzen
+        latestOperation = operation;        //Operation merken
 
         var result = switch(operation) {
             case "√" -> Math.sqrt(Double.parseDouble(screen));
-            case "%" -> Double.parseDouble(screen) / 100;
+            case "%" -> latestValue / 100;      // Prozentsatz vom ersten Wert berechnen
             case "1/x" -> {
                 double value = Double.parseDouble(screen);
                 if (value == 0) yield Double.NaN;
-                else yield 1 / latestValue;
+                else yield 1 / value; 
             }
             default -> throw new IllegalArgumentException();
         };
 
         screen = Double.toString(result);
-        if(screen.equals("NaN")) screen = "Error";
-        if(screen.contains(".") && screen.length() > 11) screen = screen.substring(0, 10);
+        if(screen.equals("NaN")) screen = "Error";      // Falls es NaN ist, als Fehler ausgeben 
+        if(screen.contains(".") && screen.length() > 11) screen = screen.substring(0, 10);      // Auf 10 Zeichen begrenzen
 
     }
 
@@ -136,12 +143,13 @@ public class Calculator {
      * Operation (ggf. inklusive letztem Operand) erneut auf den aktuellen Bildschirminhalt angewandt
      * und das Ergebnis direkt angezeigt.
      */
-    public void pressEqualsKey() {
+   public void pressEqualsKey() {
         var result = switch(latestOperation) {
             case "+" -> latestValue + Double.parseDouble(screen);
             case "-" -> latestValue - Double.parseDouble(screen);
             case "x" -> latestValue * Double.parseDouble(screen);
             case "/" -> latestValue / Double.parseDouble(screen);
+            case "" -> latestValue = Double.parseDouble(screen);
             default -> throw new IllegalArgumentException();
         };
         screen = Double.toString(result);
@@ -149,4 +157,5 @@ public class Calculator {
         if(screen.endsWith(".0")) screen = screen.substring(0,screen.length()-2);
         if(screen.contains(".") && screen.length() > 11) screen = screen.substring(0, 10);
     }
+
 }
