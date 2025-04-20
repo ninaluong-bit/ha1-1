@@ -108,6 +108,42 @@ class CalculatorTest {
         assertEquals(expected, actual); 
     }
 
-    
+    @Test
+    @DisplayName("should allow multiple additions")
+    void testMultipleOperation() {
+        Calculator calc = new Calculator();
+
+        calc.pressDigitKey(3);
+        calc.pressDigitKey(0);
+        calc.pressBinaryOperationKey("+");
+        calc.pressDigitKey(3);
+        calc.pressDigitKey(0);
+        calc.pressBinaryOperationKey("+");
+        calc.pressDigitKey(8);
+        calc.pressEqualsKey();
+
+        String expected = "68";
+        String actual = calc.readScreen();
+
+        assertEquals(expected, actual);
+    }
+
+
+
+    @Test
+    @DisplayName("should remain result after pressing on equal key multiple times")
+    void multipleEqualKeys() {
+        Calculator calc = new Calculator();
+
+        calc.pressDigitKey(4);
+        calc.pressEqualsKey();
+        calc.pressEqualsKey();
+
+        String expectedScreen = "4";
+        String actualScreen = calc.readScreen();
+
+        assertEquals(expectedScreen, actualScreen); //assert = behaupten
+    }
+
 }
 
